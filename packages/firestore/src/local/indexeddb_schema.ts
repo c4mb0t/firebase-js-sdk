@@ -49,7 +49,9 @@ import {
  *     an auto-incrementing ID. This is required for Index-Free queries.
  * 10. Rewrite the canonical IDs to the explicit Protobuf-based format.
  * 11. Add bundles and named_queries for bundle support.
+ * 12. Add document overlays.
  */
+// TODO(overlays): increment the schema version to 12 when overlays are ready.
 export const SCHEMA_VERSION = 11;
 
 /**
@@ -695,6 +697,50 @@ export class DbNamedQuery {
   ) {}
 }
 
+export type DbDocumentOverlayKey = [string, string, string];
+
+/**
+ * An object representing a document overlay.
+ */
+export class DbDocumentOverlay {
+  /** Name of the IndexedDb object store. */
+  static store = 'documentOverlays';
+
+  static keyPath = ['userId', 'collectionPath', 'documentId'];
+
+  static batchIdOverlayIndex = 'batchIdOverlayIndex';
+  static batchIdOverlayIndexPath = ['userId', 'largestBatchId'];
+
+  static collectionPathOverlayIndex = 'collectionPathBatchIdIndex';
+  static collectionPathOverlayIndexPath = [
+    'userId',
+    'collectionPath',
+    'largestBatchId'
+  ];
+
+  static collectionGroupOverlayIndex = 'collectionGroupOverlayIndex';
+  static collectionGroupOverlayIndexPath = [
+    'userId',
+    'collectionGroup',
+    'largestBatchId'
+  ];
+
+  constructor(
+    /** The user ID to whom this overlay belongs. */
+    public userId: string,
+    /** The path to the collection that contains the document. */
+    public collectionPath: string,
+    /** The ID (key) of the document within the collection. */
+    public documentId: string,
+    /** The collection group to which the document belongs. */
+    public collectionGroup: string,
+    /** The largest batch ID that's been applied for this overlay. */
+    public largestBatchId: number,
+    /** The overlay mutation. */
+    public overlayMutation: ProtoWrite
+  ) {}
+}
+
 // Visible for testing
 export const V1_STORES = [
   DbMutationQueue.store,
@@ -730,9 +776,12 @@ export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
 export const V11_STORES = [...V8_STORES, DbBundle.store, DbNamedQuery.store];
 
+export const V12_STORES = [...V11_STORES, DbDocumentOverlay.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
+// TODO(overlays): update this to V12_STORES
 export const ALL_STORES = V11_STORES;
