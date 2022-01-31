@@ -57,10 +57,10 @@ import {
 } from '../../util/helpers';
 
 describe('Bound', () => {
-  function makeBound(values: unknown[], before: boolean): Bound {
+  function makeBound(values: unknown[], inclusive: boolean): Bound {
     return new Bound(
       values.map(el => wrap(el)),
-      before
+      inclusive
     );
   }
 
@@ -554,9 +554,9 @@ describe('Query', () => {
     const q7a = queryWithLimit(query('foo'), 10, LimitType.First);
     const q8a = queryWithLimit(query('foo'), 10, LimitType.Last);
 
-    const lip1a = bound(['coll/foo'], true);
-    const lip1b = bound(['coll/foo'], false);
-    const lip2 = bound(['coll/bar'], true);
+    const lip1a = bound(['coll/foo'], false);
+    const lip1b = bound(['coll/foo'], true);
+    const lip2 = bound(['coll/bar'], false);
     // TODO(b/35851862): descending key ordering not supported yet
     // const lip3 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'desc']]);
 
@@ -695,14 +695,14 @@ describe('Query', () => {
     assertCanonicalId(
       queryWithStartAt(
         query('collection', orderBy('a', 'asc'), orderBy('b', 'asc')),
-        bound(['foo', [1, 2, 3]], true)
+        bound(['foo', [1, 2, 3]], false)
       ),
       'collection|f:|ob:aasc,basc,__name__asc|lb:b:foo,[1,2,3]'
     );
     assertCanonicalId(
       queryWithEndAt(
         query('collection', orderBy('a', 'desc'), orderBy('b', 'desc')),
-        bound(['foo', [1, 2, 3]], false)
+        bound(['foo', [1, 2, 3]], true)
       ),
       'collection|f:|ob:adesc,bdesc,__name__desc|ub:a:foo,[1,2,3]'
     );
@@ -783,10 +783,10 @@ describe('Query', () => {
     query1 = queryWithLimit(query('foo'), 1, LimitType.First);
     expect(matchesAllDocuments(query1)).to.be.false;
 
-    query1 = queryWithStartAt(baseQuery, bound([], true));
+    query1 = queryWithStartAt(baseQuery, bound([], false));
     expect(matchesAllDocuments(query1)).to.be.false;
 
-    query1 = queryWithEndAt(baseQuery, bound([], true));
+    query1 = queryWithEndAt(baseQuery, bound([], false));
     expect(matchesAllDocuments(query1)).to.be.false;
   });
 

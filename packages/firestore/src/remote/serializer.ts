@@ -1018,15 +1018,15 @@ function fromOrder(orderBys: ProtoOrder[]): OrderBy[] {
 
 function toCursor(cursor: Bound): ProtoCursor {
   return {
-    before: cursor.before,
+    before: !cursor.inclusive,
     values: cursor.position
   };
 }
 
 function fromCursor(cursor: ProtoCursor): Bound {
-  const before = !!cursor.before;
+  const inclusive = !cursor.before;
   const position = cursor.values || [];
-  return new Bound(position, before);
+  return new Bound(position, inclusive);
 }
 
 // visible for testing

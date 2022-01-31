@@ -113,7 +113,7 @@ apiDescribe('Cursors', (persistence: boolean) => {
     });
   });
 
-  it('can be created from values', () => {
+  it.only('can be created from values', () => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },

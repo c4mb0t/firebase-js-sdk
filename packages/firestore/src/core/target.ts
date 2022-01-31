@@ -351,7 +351,7 @@ export function targetGetLowerBound(
           const cursorValue = target.startAt.position[i];
           if (valuesMax(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
-            segmentInclusive = !target.startAt.before;
+            segmentInclusive = target.startAt.inclusive;
           }
           break;
         }
@@ -365,7 +365,7 @@ export function targetGetLowerBound(
     values.push(segmentValue);
     inclusive &&= segmentInclusive;
   }
-  return new Bound(values, !inclusive);
+  return new Bound(values, inclusive);
 }
 /**
  * Returns an upper bound of field values that can be used as an ending point
@@ -436,7 +436,7 @@ export function targetGetUpperBound(
           const cursorValue = target.endAt.position[i];
           if (valuesMin(segmentValue, cursorValue) === cursorValue) {
             segmentValue = cursorValue;
-            segmentInclusive = !target.endAt.before;
+            segmentInclusive = target.endAt.inclusive;
           }
           break;
         }
@@ -451,7 +451,7 @@ export function targetGetUpperBound(
     inclusive &&= segmentInclusive;
   }
 
-  return new Bound(values, !inclusive);
+  return new Bound(values, inclusive);
 }
 
 export abstract class Filter {
@@ -772,7 +772,6 @@ export class ArrayContainsAnyFilter extends FieldFilter {
   }
 }
 
-// TODO(indexing): Change Bound.before to "inclusive"
 /**
  * Represents a bound of a query.
  *
@@ -788,12 +787,12 @@ export class ArrayContainsAnyFilter extends FieldFilter {
  * just after the provided values.
  */
 export class Bound {
-  constructor(readonly position: ProtoValue[], readonly before: boolean) {}
+  constructor(readonly position: ProtoValue[], readonly inclusive: boolean) {}
 }
 
 export function canonifyBound(bound: Bound): string {
   // TODO(b/29183165): Make this collision robust.
-  return `${bound.before ? 'b' : 'a'}:${bound.position
+  return `${bound.inclusive ? 'a' : 'b'}:${bound.position
     .map(p => canonicalId(p))
     .join(',')}`;
 }
@@ -862,7 +861,7 @@ export function sortsBeforeDocument(
       break;
     }
   }
-  return bound.before ? comparison <= 0 : comparison < 0;
+  return bound.inclusive ? comparison <= 0 : comparison < 0;
 }
 
 export function boundEquals(left: Bound | null, right: Bound | null): boolean {
@@ -873,7 +872,7 @@ export function boundEquals(left: Bound | null, right: Bound | null): boolean {
   }
 
   if (
-    left.before !== right.before ||
+    left.inclusive !== right.inclusive ||
     left.position.length !== right.position.length
   ) {
     return false;
